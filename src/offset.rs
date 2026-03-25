@@ -39,13 +39,13 @@ impl Offset {
     /// let settings = OffsetSettings::default();
     /// let mut offset = Offset::new(settings, 100.0); // 100 Hz sample rate
     /// ```
-    pub fn new(_settings: OffsetSettings, sample_rate: f32) -> Self {
+    pub fn new(settings: OffsetSettings, sample_rate: f32) -> Self {
         // Calculate filter coefficient based on cutoff frequency and sample rate
         // filterCoefficient = 2π × fc / fs
         let filter_coefficient = 2.0 * core::f32::consts::PI * CUTOFF_FREQUENCY / sample_rate;
 
         // Convert timeout from seconds to sample count
-        let timeout = (TIMEOUT_SECONDS * sample_rate) as u32;
+        let timeout = (settings.timeout * sample_rate) as u32;
 
         Self {
             filter_coefficient,
