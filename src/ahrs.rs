@@ -489,11 +489,8 @@ impl Ahrs {
         let sin_roll = roll.sin();
         let cos_roll = roll.cos();
 
-        let magnetometer = Vector3::new(
-            cos_heading,
-            -cos_roll * sin_heading,
-            sin_heading * sin_roll,
-        );
+        let magnetometer =
+            Vector3::new(cos_heading, -cos_roll * sin_heading, sin_heading * sin_roll);
 
         // Update with synthetic magnetometer
         self.update(gyroscope, accelerometer, magnetometer, delta_time);

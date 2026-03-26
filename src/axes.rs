@@ -258,8 +258,14 @@ mod tests {
         let z = Vector3::new(0.0, 0.0, 1.0);
 
         // PyNxPz: x'=y, y'=-x, z'=z
-        assert_eq!(axes_swap(x, AxesAlignment::PyNxPz), Vector3::new(0.0, -1.0, 0.0));
-        assert_eq!(axes_swap(y, AxesAlignment::PyNxPz), Vector3::new(1.0, 0.0, 0.0));
+        assert_eq!(
+            axes_swap(x, AxesAlignment::PyNxPz),
+            Vector3::new(0.0, -1.0, 0.0)
+        );
+        assert_eq!(
+            axes_swap(y, AxesAlignment::PyNxPz),
+            Vector3::new(1.0, 0.0, 0.0)
+        );
         assert_eq!(axes_swap(z, AxesAlignment::PyNxPz), z);
     }
 

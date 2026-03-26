@@ -324,8 +324,7 @@ mod tests {
 
         for &sample_rate in &sample_rates {
             let offset = Offset::new(OffsetSettings::default(), sample_rate);
-            let expected =
-                2.0 * core::f32::consts::PI * offset.cutoff_frequency() / sample_rate;
+            let expected = 2.0 * core::f32::consts::PI * offset.cutoff_frequency() / sample_rate;
 
             assert!((offset.filter_coefficient() - expected).abs() < 1e-6);
 
