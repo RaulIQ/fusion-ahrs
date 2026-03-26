@@ -3,11 +3,6 @@
 use crate::types::OffsetSettings;
 use nalgebra::Vector3;
 
-/// Offset correction algorithm constants
-const CUTOFF_FREQUENCY: f32 = 0.02; // Hz
-const TIMEOUT_SECONDS: f32 = 5.0; // seconds
-const THRESHOLD: f32 = 3.0; // deg/s
-
 /// Gyroscope offset correction structure
 ///
 /// Provides runtime estimation and correction of gyroscope bias drift,
@@ -15,10 +10,14 @@ const THRESHOLD: f32 = 3.0; // deg/s
 /// estimate the offset when the sensor is stationary for a sufficient period.
 #[derive(Debug, Clone, Copy)]
 pub struct Offset {
+    /// Low-pass filter cutoff frequency in Hz
+    cutoff_frequency: f32,
     /// Filter coefficient for offset estimation
     filter_coefficient: f32,
     /// Timeout period in samples
     timeout: u32,
+    /// Gyroscope threshold in degrees per second
+    threshold: f32,
     /// Current timer value (counts samples while stationary)
     timer: u32,
     /// Estimated gyroscope offset
@@ -42,14 +41,17 @@ impl Offset {
     pub fn new(settings: OffsetSettings, sample_rate: f32) -> Self {
         // Calculate filter coefficient based on cutoff frequency and sample rate
         // filterCoefficient = 2π × fc / fs
-        let filter_coefficient = 2.0 * core::f32::consts::PI * CUTOFF_FREQUENCY / sample_rate;
+        let filter_coefficient =
+            2.0 * core::f32::consts::PI * settings.cutoff_frequency / sample_rate;
 
         // Convert timeout from seconds to sample count
         let timeout = (settings.timeout * sample_rate) as u32;
 
         Self {
+            cutoff_frequency: settings.cutoff_frequency,
             filter_coefficient,
             timeout,
+            threshold: settings.threshold,
             timer: 0,
             gyroscope_offset: Vector3::zeros(),
         }
@@ -84,9 +86,9 @@ impl Offset {
 
         // Step 2: Check if gyroscope indicates stationary motion
         // All axes must be below threshold simultaneously
-        if corrected_gyroscope.x.abs() > THRESHOLD
-            || corrected_gyroscope.y.abs() > THRESHOLD
-            || corrected_gyroscope.z.abs() > THRESHOLD
+        if corrected_gyroscope.x.abs() > self.threshold
+            || corrected_gyroscope.y.abs() > self.threshold
+            || corrected_gyroscope.z.abs() > self.threshold
         {
             // Motion detected - reset timer
             self.timer = 0;
@@ -140,20 +142,24 @@ impl Offset {
         self.timer
     }
 
+    /// Get the cutoff frequency in Hz
+    pub fn cutoff_frequency(&self) -> f32 {
+        self.cutoff_frequency
+    }
+
     /// Get the filter coefficient
-    ///
-    /// # Returns
-    /// Low-pass filter coefficient used for offset updates
     pub fn filter_coefficient(&self) -> f32 {
         self.filter_coefficient
     }
 
-    /// Get the timeout threshold
-    ///
-    /// # Returns
-    /// Number of samples required before offset estimation begins
+    /// Get the timeout in samples
     pub fn timeout(&self) -> u32 {
         self.timeout
+    }
+
+    /// Get the threshold in degrees per second
+    pub fn threshold(&self) -> f32 {
+        self.threshold
     }
 }
 
@@ -179,8 +185,9 @@ mod tests {
         assert_eq!(offset.timer(), 0);
 
         // Check calculated values
-        let expected_coefficient = 2.0 * core::f32::consts::PI * CUTOFF_FREQUENCY / sample_rate;
-        let expected_timeout = (TIMEOUT_SECONDS * sample_rate) as u32;
+        let expected_coefficient =
+            2.0 * core::f32::consts::PI * settings.cutoff_frequency / sample_rate;
+        let expected_timeout = (settings.timeout * sample_rate) as u32;
 
         assert!((offset.filter_coefficient() - expected_coefficient).abs() < 1e-6);
         assert_eq!(offset.timeout(), expected_timeout);
@@ -216,7 +223,7 @@ mod tests {
         let sample_rate = 10.0; // Use low sample rate for faster testing
         let mut offset = Offset::new(OffsetSettings::default(), sample_rate);
 
-        let timeout_samples = (TIMEOUT_SECONDS * sample_rate) as u32;
+        let timeout_samples = offset.timeout();
         let stationary_reading = Vector3::new(0.1, 0.1, 0.1);
 
         // Apply stationary readings up to timeout (but not including)
@@ -245,7 +252,7 @@ mod tests {
 
         // Simulate constant bias
         let true_bias = Vector3::new(0.5, -0.3, 0.2);
-        let timeout_samples = (TIMEOUT_SECONDS * sample_rate) as u32;
+        let timeout_samples = offset.timeout();
 
         // First, reach timeout with stationary readings
         for _ in 0..timeout_samples {
@@ -317,7 +324,7 @@ mod tests {
 
         for &sample_rate in &sample_rates {
             let offset = Offset::new(OffsetSettings::default(), sample_rate);
-            let expected = 2.0 * core::f32::consts::PI * CUTOFF_FREQUENCY / sample_rate;
+            let expected = 2.0 * core::f32::consts::PI * offset.cutoff_frequency() / sample_rate;
 
             assert!((offset.filter_coefficient() - expected).abs() < 1e-6);
 
@@ -330,11 +337,12 @@ mod tests {
     #[test]
     fn test_offset_threshold_behavior() {
         let mut offset = Offset::new(OffsetSettings::default(), 100.0);
+        let threshold = offset.threshold();
 
         // Test readings right at threshold boundary
-        let at_threshold = Vector3::new(THRESHOLD, 0.0, 0.0);
-        let below_threshold = Vector3::new(THRESHOLD - 0.1, 0.0, 0.0);
-        let above_threshold = Vector3::new(THRESHOLD + 0.1, 0.0, 0.0);
+        let at_threshold = Vector3::new(threshold, 0.0, 0.0);
+        let below_threshold = Vector3::new(threshold - 0.1, 0.0, 0.0);
+        let above_threshold = Vector3::new(threshold + 0.1, 0.0, 0.0);
 
         // Below threshold should increment timer
         offset.update(below_threshold);

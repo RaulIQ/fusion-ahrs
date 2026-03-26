@@ -1,32 +1,48 @@
 ## Objective
 
-Port a C sensor fusion library (Fusion AHRS) to Rust, maintaining performance while following Rust best practices.
+Rust port of the Fusion AHRS C library, maintaining algorithm parity while following Rust best practices.
 
-## Core Requirements
+## Quick Reference
 
-### Architecture
-- **Main Library**: Implement AHRS (Attitude and Heading Reference System) for IMU sensor fusion
+```bash
+cargo test                          # run all tests
+cargo build --no-default-features   # verify no_std / embedded compatibility
+cargo clippy                        # lint
+cargo bench                         # criterion benchmarks (ahrs_benchmarks)
+cargo run --example simple          # basic 6-DOF usage with plots
+cargo run --example advanced        # full 9-DOF with offset & diagnostics
+```
+
+## Architecture
+
 - **Input**: Gyroscope, accelerometer, magnetometer data as `nalgebra::Vector3<f32>`
 - **Output**: Orientation as `nalgebra::UnitQuaternion<f32>`
-- **Compatibility**: `#![no_std]` for embedded systems
+- **Compatibility**: `#![no_std]` (edition 2024)
 
-### Key Components to Implement
-1. **AhrsSettings** - Algorithm configuration (gain, thresholds, conventions)
-2. **Ahrs** - Main algorithm struct with `update()` method
-3. **Offset** - Gyroscope offset correction for temperature drift
-4. **Calibration** - Sensor calibration functions
-5. **Internal States & Flags** - Algorithm diagnostics
+### Source Layout
+
+```
+src/
+  lib.rs          – public API re-exports
+  ahrs.rs         – core AHRS algorithm (update, quaternion, gravity, linear/earth acceleration)
+  types.rs        – AhrsSettings, AhrsInternalStates, AhrsFlags, Convention, OffsetSettings
+  offset.rs       – gyroscope offset correction (with inline unit tests)
+  calibration.rs  – calibrate_inertial(), calibrate_magnetic()
+  math.rs         – math utilities, Vector3Ext / QuaternionExt traits
+  axes.rs         – sensor axes alignment (axes_swap, AxesAlignment)
+  compass.rs      – tilt-compensated magnetic heading (calculate_heading)
+```
+
+### Dependencies
+- `nalgebra` — vector/matrix ops (no-std compatible, `libm` feature)
+- Dev only: `csv`, `serde`, `plotters`, `criterion`, `rand`, `rand_pcg`
+- C reference implementation in `fusion-c/` (git submodule — `git submodule update --init`)
 
 ### Code Quality Standards
 - **Modularity**: Single-responsibility, minimal public APIs
 - **Performance**: Zero-cost abstractions, minimal allocations
 - **Testability**: Comprehensive unit tests with provided test data
 - **Documentation**: Rustdoc for all public APIs with examples
-
-### Dependencies
-- `nalgebra` for all vector/matrix operations (no-std compatible)
-- `plotters` for visualizations
-- C reference implementation available in `fusion-c/` directory (git submodule — run `git submodule update --init` before exploring)
 
 ### Algorithm Features
 - Complementary filter combining high-pass gyroscope + low-pass accel/mag
@@ -35,17 +51,20 @@ Port a C sensor fusion library (Fusion AHRS) to Rust, maintaining performance wh
 - Support for NWU, ENU, NED coordinate conventions
 
 ## Test Data
-Test sensor data is available in `testdata/sensor_data.csv` with columns:
-- Time (s)
-- Gyroscope X, Y, Z (deg/s)  
-- Accelerometer X, Y, Z (g)
-- Magnetometer X, Y, Z (µT)
+
+`testdata/sensor_data.csv` — columns: Time (s), Gyro X/Y/Z (deg/s), Accel X/Y/Z (g), Mag X/Y/Z (µT). No pre-computed reference output; tests validate algorithm behavior and C parity directly.
 
 ## Development Guidelines
 - Follow the C implementation's algorithm behavior exactly
 - Use nalgebra types consistently (`Vector3`, `UnitQuaternion`, `Matrix3`)
 - Maintain embedded compatibility (`cargo build --no-default-features`)
-- Include comprehensive examples demonstrating real-world usage
+
+## Release Notes Guidelines
+- Group changes under ## What's New and ## Bug Fixes headings as applicable
+- Each item gets an ### H3 heading with short description and PR number (e.g., ### Feature name (#123))
+- One-sentence summary below the heading
+- A code sample showing typical usage in a fenced ```rust block
+- Order items by significance (most impactful first)
 
 ## Success Criteria
 - Matches C library performance benchmarks

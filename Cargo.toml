@@ -1,6 +1,6 @@
 [package]
 name = "fusion-ahrs"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2024"
 authors = ["Wil Boayue <wil@wsbsolutions.com>"]
 description = "A Rust port of the C library by xioTechnologies, providing memory safety and zero-cost abstractions while maintaining the same performance characteristics."
@@ -25,8 +25,8 @@ csv = "1.4"
 plotters = "0.3"
 serde = { version = "1.0", features = ["derive"] }
 criterion = { version = "0.8", features = ["html_reports"] }
-rand = "0.9"
-rand_pcg = "0.9"
+rand = "0.10"
+rand_pcg = "0.10"
 
 [[bench]]
 name = "ahrs_benchmarks"
