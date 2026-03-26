@@ -40,9 +40,14 @@ The algorithm calculates the orientation as the integration of the gyroscope sum
 use fusion_ahrs::{Ahrs, AhrsSettings};
 use nalgebra::{Vector3, UnitQuaternion};
 
-// Create AHRS instance with default settings
-let settings = AhrsSettings::default();
-let mut ahrs = Ahrs::new(settings);
+// Create AHRS instance
+
+// Option 1: use default settings
+let mut ahrs = Ahrs::new();
+
+// Option 2: provide custom settings
+// let settings = AhrsSettings::default();
+// let mut ahrs = Ahrs::with_settings(settings);
 
 // Sample sensor data using nalgebra vectors
 let gyroscope = Vector3::new(0.0, 0.0, 0.0);      // rad/s
