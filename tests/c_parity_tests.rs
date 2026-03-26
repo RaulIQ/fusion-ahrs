@@ -173,7 +173,10 @@ fn test_flags_recovery_comparison() {
         "Recovery trigger (normalized): {}",
         states.acceleration_recovery_trigger
     );
-    println!("acceleration_recovery flag: {}", flags.acceleration_recovery);
+    println!(
+        "acceleration_recovery flag: {}",
+        flags.acceleration_recovery
+    );
 
     // With trigger period of 100 and only 50 bad readings,
     // C would have trigger < timeout, so acceleration_recovery should be FALSE

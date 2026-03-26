@@ -10,10 +10,10 @@ fn test_settings_processing() {
     let ahrs = Ahrs::new();
     let settings = ahrs.get_settings();
     assert_eq!(settings.gain, 0.5);
-    assert_eq!(settings.gyroscope_range, 0.0);         // Disabled by default (C compat)
+    assert_eq!(settings.gyroscope_range, 0.0); // Disabled by default (C compat)
     assert_eq!(settings.acceleration_rejection, 90.0); // C default
-    assert_eq!(settings.magnetic_rejection, 90.0);     // C default
-    assert_eq!(settings.recovery_trigger_period, 0);   // Disabled by default (C compat)
+    assert_eq!(settings.magnetic_rejection, 90.0); // C default
+    assert_eq!(settings.recovery_trigger_period, 0); // Disabled by default (C compat)
 
     // Test enabled gyroscope range
     let settings_enabled = AhrsSettings {
@@ -463,7 +463,7 @@ fn test_internal_states_error_uses_asin() {
          If error is ~{:.1}°, asin() may be missing.",
         expected_error,
         states.acceleration_error,
-        angle_rad.sin().to_degrees() * 2.0  // What you'd get without asin
+        angle_rad.sin().to_degrees() * 2.0 // What you'd get without asin
     );
 
     // Test with a larger angle where the difference is more pronounced
