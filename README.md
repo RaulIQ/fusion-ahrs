@@ -179,7 +179,8 @@ use fusion_ahrs::{Offset, OffsetSettings};
 use nalgebra::Vector3;
 
 let settings = OffsetSettings::default();
-let mut offset = Offset::new(settings);
+let sample_rate = 100.0; // Hz
+let mut offset = Offset::new(settings, sample_rate);
 
 // Update with gyroscope measurements
 let gyroscope = Vector3::new(0.1, -0.05, 0.02); // Small offsets while stationary
