@@ -47,6 +47,13 @@ Test sensor data is available in `testdata/sensor_data.csv` with columns:
 - Maintain embedded compatibility (`cargo build --no-default-features`)
 - Include comprehensive examples demonstrating real-world usage
 
+## Release Notes Guidelines
+- Group changes under ## What's New and ## Bug Fixes headings as applicable
+- Each item gets an ### H3 heading with short description and PR number (e.g., ### Feature name (#123))
+- One-sentence summary below the heading
+- A code sample showing typical usage in a fenced ```rust block
+- Order items by significance (most impactful first)
+
 ## Success Criteria
 - Matches C library performance benchmarks
 - Passes all test cases with provided sensor data
