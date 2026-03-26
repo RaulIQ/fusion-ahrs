@@ -229,29 +229,36 @@ pub struct AhrsFlags {
 /// use fusion_ahrs::OffsetSettings;
 ///
 /// let settings = OffsetSettings {
-///     filter_coefficient: 0.005,  // Slower convergence
-///     timeout: 10.0,              // 10 seconds to detect stationary
+///     cutoff_frequency: 0.01,  // Slower convergence
+///     timeout: 10.0,           // 10 seconds to detect stationary
+///     threshold: 3.0,          // 3 deg/s motion threshold
 /// };
 /// ```
 #[derive(Debug, Clone, Copy)]
 pub struct OffsetSettings {
-    /// Filter coefficient for offset estimation (typically 0.01)
+    /// Low-pass filter cutoff frequency in Hz (default 0.02)
     ///
-    /// Controls how quickly the offset estimate converges.
-    /// Lower values provide more stability but slower response.
-    pub filter_coefficient: f32,
-    /// Timeout period in seconds before offset estimation begins (typically 5.0)
+    /// Used to compute the filter coefficient as `2π × cutoff_frequency / sample_rate`.
+    /// Lower values provide more stability but slower convergence.
+    pub cutoff_frequency: f32,
+    /// Timeout period in seconds before offset estimation begins (default 5.0)
     ///
     /// Duration the sensor must remain stationary before offset
     /// correction begins. Longer timeouts reduce false corrections.
     pub timeout: f32,
+    /// Gyroscope threshold in degrees per second (default 3.0)
+    ///
+    /// If any gyroscope axis exceeds this value, the sensor is
+    /// considered in motion and the stationary timer resets.
+    pub threshold: f32,
 }
 
 impl Default for OffsetSettings {
     fn default() -> Self {
         Self {
-            filter_coefficient: 0.01,
+            cutoff_frequency: 0.02,
             timeout: 5.0,
+            threshold: 3.0,
         }
     }
 }
